@@ -1,15 +1,39 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Bem-vindo(a) à Plataforma Comunitária</title>
+    <title>Bem-vindo à Plataforma Comunidade</title>
 </head>
-<body>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
 
-    <!-- TODO: Montar o layout do e-mail de boas-vindas -->
-    <!-- Dica: use th:text="${name}" para exibir o nome do usuário -->
+<!-- TODO Fase 4: estilizar conforme identidade visual da plataforma.
+     Variáveis disponíveis no model (passadas pelo EmailService.sendWelcomeEmail):
+       ${name}    -> nome do usuário
+       ${appUrl}  -> URL da plataforma (configurável em application.properties)
+-->
 
-    <p>Olá, <span th:text="${name}">Usuário</span>!</p>
+<h1>Olá, <span th:text="${name}">[Nome]</span>!</h1>
+
+<p>Seja bem-vindo(a) à <strong>Plataforma Comunidade</strong>.</p>
+
+<p>
+    Seu cadastro foi realizado com sucesso. A partir de agora você pode
+    acessar a vitrine de serviços voluntários disponibilizados por prestadores
+    da sua região.
+</p>
+
+<p>
+    <a th:href="${appUrl}" href="#"
+       style="display:inline-block; padding:10px 20px; background:#0d6efd; color:#fff; text-decoration:none; border-radius:4px;">
+        Acessar Plataforma
+    </a>
+</p>
+
+<hr/>
+
+<p style="font-size: 12px; color: #888;">
+    Este é um e-mail automático. Não responda.
+</p>
 
 </body>
 </html>

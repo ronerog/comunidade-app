@@ -1,0 +1,72 @@
+{
+  "realm": "comunidade",
+  "enabled": true,
+  "displayName": "Plataforma Comunidade",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "sslRequired": "none",
+
+  "roles": {
+    "realm": [
+      {
+        "name": "CLIENT",
+        "description": "Cidadão que solicita serviços"
+      },
+      {
+        "name": "PROVIDER",
+        "description": "Prestador que oferece serviços voluntários"
+      },
+      {
+        "name": "ADMIN",
+        "description": "Administrador da plataforma"
+      }
+    ]
+  },
+
+  "clients": [
+    {
+      "clientId": "comunidade-frontend",
+      "name": "Frontend Next.js",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "redirectUris": [
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3000"
+      ],
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "identity-service",
+      "name": "Identity User Service",
+      "enabled": true,
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "secret": "TROQUE_ESTE_SECRET_EM_PRODUCAO",
+      "protocol": "openid-connect"
+    }
+  ],
+
+  "users": [
+    {
+      "username": "admin@comunidade.local",
+      "email": "admin@comunidade.local",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Admin",
+      "lastName": "Plataforma",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Admin@123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["ADMIN"]
+    }
+  ]
+}

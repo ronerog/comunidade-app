@@ -1,0 +1,53 @@
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Migration V1 — esquema inicial do Identity Service
+-- ─────────────────────────────────────────────────────────────────────────────
+-- TODO Fase 1: criar as tabelas USERS e ADDRESSES conforme docs/3-modelo_entidade_relacionamento.md
+--
+-- Lembre-se:
+--   - usar UUID como PK (Postgres tem `gen_random_uuid()` no extension `pgcrypto`)
+--   - Single Table Inheritance: a tabela `users` recebe TODOS os campos
+--     (de Client e de Provider). Discriminator em `user_type` VARCHAR.
+--   - colunas not null vs nullable: pense no que é específico de cada tipo.
+--     Ex: birth_date só faz sentido para CLIENT, mas como é single table,
+--     a coluna existe e fica null para PROVIDER.
+--   - índice único em email e document.
+--
+-- Esqueleto inicial (descomente e ajuste):
+--
+-- CREATE EXTENSION IF NOT EXISTS pgcrypto;
+--
+-- CREATE TABLE users (
+--     id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+--     user_type           VARCHAR(20)  NOT NULL,
+--     email               VARCHAR(255) NOT NULL UNIQUE,
+--     password_hash       VARCHAR(255),
+--     document            VARCHAR(20)  NOT NULL UNIQUE,
+--     mobile_phone        VARCHAR(20),
+--     profile_picture_url VARCHAR(512),
+--     document_anex_url   VARCHAR(512),
+--     status              VARCHAR(20)  NOT NULL,
+--     -- campos específicos de Client
+--     first_name          VARCHAR(100),
+--     last_name           VARCHAR(100),
+--     birth_date          DATE,
+--     gender              VARCHAR(10),
+--     -- campos específicos de Provider
+--     company_name        VARCHAR(255),
+--     biography           TEXT,
+--     created_at          TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--     updated_at          TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+-- );
+--
+-- CREATE TABLE addresses (
+--     id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+--     user_id     UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+--     cep         VARCHAR(8)   NOT NULL,
+--     logradouro  VARCHAR(255) NOT NULL,
+--     number      VARCHAR(20)  NOT NULL,
+--     bairro      VARCHAR(100) NOT NULL,
+--     city        VARCHAR(100) NOT NULL,
+--     state       CHAR(2)      NOT NULL
+-- );
+--
+-- CREATE INDEX idx_users_status ON users(status);
+-- CREATE INDEX idx_addresses_cep ON addresses(cep);

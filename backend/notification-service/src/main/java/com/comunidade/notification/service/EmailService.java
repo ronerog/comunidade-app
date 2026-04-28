@@ -2,19 +2,50 @@ package com.comunidade.notification.service;
 
 import org.springframework.stereotype.Service;
 
-// TODO: Implementar o envio de e-mail
-// Dicas:
-// - Injetar JavaMailSender
-// - Injetar TemplateEngine (Thymeleaf) para renderizar o template HTML
-// - Criar MimeMessage com MimeMessageHelper
-// - Definir from, to, subject e o corpo HTML
+// TODO Fase 4: implementar envio de e-mail HTML usando JavaMailSender + Thymeleaf.
+//
+// Esqueleto:
+//
+//   @Service
+//   @RequiredArgsConstructor
+//   @Slf4j
+//   public class EmailService {
+//
+//       private final JavaMailSender mailSender;
+//       private final TemplateEngine templateEngine;
+//
+//       @Value("${notification.email.from}")
+//       private String from;
+//
+//       @Value("${notification.email.from-name}")
+//       private String fromName;
+//
+//       public void sendWelcomeEmail(String toEmail, String name) {
+//           Context ctx = new Context();
+//           ctx.setVariable("name", name);
+//           ctx.setVariable("appUrl", "http://localhost:3000");
+//
+//           String html = templateEngine.process("welcome-email", ctx);
+//
+//           MimeMessage message = mailSender.createMimeMessage();
+//           try {
+//               MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+//               helper.setFrom(from, fromName);
+//               helper.setTo(toEmail);
+//               helper.setSubject("Bem-vindo à Plataforma Comunidade");
+//               helper.setText(html, true);
+//               mailSender.send(message);
+//               log.info("E-mail de boas-vindas enviado para {}", toEmail);
+//           } catch (MessagingException | UnsupportedEncodingException e) {
+//               throw new EmailDeliveryException("Falha ao enviar e-mail para " + toEmail, e);
+//           }
+//       }
+//   }
+//
+// Por que lançar exceção custom em vez de catch + log? Porque o consumer
+// precisa saber que falhou para o RabbitMQ re-entregar (Fase 4: DLQ).
 @Service
 public class EmailService {
 
-    // TODO: injetar JavaMailSender e TemplateEngine
-
-    public void sendWelcomeEmail(String toEmail, String name) {
-        // TODO: renderizar o template "welcome-email" com o nome do usuário
-        //       e enviar o e-mail via mailSender.send(...)
-    }
+    // TODO Fase 4: implementar
 }

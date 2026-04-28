@@ -1,11 +1,18 @@
 package com.comunidade.catalog.domain.model;
 
-// TODO: Mapear a entidade Category com JPA (@Entity, @Table)
-// Campos do MER: id (Long), name (String)
-// Dica: use @Enumerated ou apenas String para o nome da categoria
-// Referência: docs/3-modelo_entidade_relacionamento.md — tabela CATEGORIES
+// TODO Fase 1: mapear Category como entidade JPA.
+//
+// Anotações sugeridas:
+//   @Entity
+//   @Table(name = "categories")
+//   @Getter @Setter
+//
+// Campos:
+//   - id   (Long, @Id @GeneratedValue(strategy = IDENTITY))
+//   - name (String, unique = true)
+//
+// Categorias iniciais já são populadas na migration V1 (Limpeza, Elétrica, etc).
 public class Category {
 
-    // TODO: id (Long, @Id @GeneratedValue)
-    // TODO: name (String)
+    // TODO: implementar
 }

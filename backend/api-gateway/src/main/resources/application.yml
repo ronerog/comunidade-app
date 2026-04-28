@@ -1,0 +1,66 @@
+spring:
+  application:
+    name: api-gateway
+
+server:
+  port: 8080  # o Gateway é a entrada única — fica na porta principal
+
+# ── Keycloak (JWT validation local) ────────────────────────────────────────
+# O Gateway valida o token UMA VEZ na borda e repassa o request autenticado.
+# Os microserviços internos confiam no Gateway (ou validam de novo com a mesma chave).
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # issuer-uri faz o Gateway baixar o JWKS e validar JWT localmente
+          issuer-uri: http://keycloak:8080/realms/comunidade  # nome DNS do docker-compose
+
+# ── Redis (rate limiting) ──────────────────────────────────────────────────
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: ${REDIS_PASSWORD:senha}
+
+# ── Rotas do Gateway ───────────────────────────────────────────────────────
+# TODO Fase 7: configurar as rotas abaixo.
+#
+# Conceitos importantes:
+#   - predicates: quais requests entram nessa rota (Path, Method, Header...)
+#   - filters:    transformações aplicadas (AddRequestHeader, StripPrefix, CircuitBreaker...)
+#   - uri:        para onde encaminhar (nome do serviço no docker-compose)
+#
+# Com docker-compose, os serviços se comunicam pelo nome do serviço como hostname.
+# ex: http://identity-user-service:8081
+  cloud:
+    gateway:
+      default-filters:
+        # Passa o JWT decodificado como header para os serviços downstream
+        # TODO: - TokenRelay=
+      routes:
+
+        # ── Identity Service ─────────────────────────────────────
+        - id: identity-service
+          uri: http://identity-user-service:8081
+          predicates:
+            - Path=/api/v1/users/**
+          # TODO: adicionar filtros (ex: rate limiting por IP)
+
+        # ── Service Catalog ──────────────────────────────────────
+        - id: catalog-service
+          uri: http://service-catalog:8083
+          predicates:
+            - Path=/api/v1/services/**
+
+        # ── Notification Service (admin/internal) ────────────────
+        - id: notification-service
+          uri: http://notification-service:8082
+          predicates:
+            - Path=/api/v1/notifications/**
+
+# ── Logging ──────────────────────────────────────────────────────────────
+logging:
+  level:
+    com.comunidade.gateway: DEBUG
+    org.springframework.cloud.gateway: INFO

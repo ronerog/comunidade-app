@@ -1,26 +1,32 @@
 package com.comunidade.catalog.domain.model;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
-// TODO: Mapear a entidade ServiceItem com JPA (@Entity, @Table(name = "services"))
-// Campos do MER: id (UUID), provider_id (UUID, FK), category_id (Long, FK),
-//                title, description, availability, status, created_at
+// TODO Fase 1: entidade central do catálogo (RF03).
+//
+// Anotações sugeridas:
+//   @Entity
+//   @Table(name = "services")
+//   @Getter @Setter
+//
+// Campos do MER:
+//   - id           (UUID, @Id @GeneratedValue(strategy = UUID))
+//   - title        (String, @Column(nullable = false))
+//   - description  (String, @Column(columnDefinition = "TEXT"))
+//   - availability (String)
+//   - status       (ServiceStatus, @Enumerated(EnumType.STRING))
+//   - createdAt    (LocalDateTime, @CreationTimestamp)
+//
 // Relações:
-//   - @ManyToOne com ProviderProfile (provider)
-//   - @ManyToOne com Category (category)
-//   - @OneToMany com ServicePhoto (photos)
-// Referência: docs/3-modelo_entidade_relacionamento.md — tabela SERVICES
-//             docs/4-mapeamento_de_classes.md — classe ServiceItem
+//   - provider (@ManyToOne ProviderProfile, @JoinColumn(name = "provider_id"))
+//   - category (@ManyToOne Category, @JoinColumn(name = "category_id"))
+//   - photos   (@OneToMany(mappedBy = "service", cascade = ALL, orphanRemoval = true))
+//
+// Dica de performance: ManyToOne padrão é EAGER. Em produção, prefira LAZY (FetchType.LAZY)
+// e use queries com JOIN FETCH onde precisar. Aprenda o "N+1 problem" — clássico do Hibernate.
 public class ServiceItem {
 
-    // TODO: id (UUID, @Id @GeneratedValue)
-    // TODO: title (String)
-    // TODO: description (String, @Column(columnDefinition = "TEXT"))
-    // TODO: availability (String)
-    // TODO: status (ServiceStatus enum)
-    // TODO: createdAt (LocalDateTime)
-    // TODO: provider (@ManyToOne ProviderProfile)
-    // TODO: category (@ManyToOne Category)
-    // TODO: photos (List<ServicePhoto>, @OneToMany)
+    // TODO: implementar
 }

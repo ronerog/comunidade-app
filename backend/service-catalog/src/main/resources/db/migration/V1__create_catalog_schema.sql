@@ -1,0 +1,52 @@
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Migration V1 — esquema inicial do Service Catalog
+-- ─────────────────────────────────────────────────────────────────────────────
+-- TODO Fase 1: criar tabelas conforme docs/3-modelo_entidade_relacionamento.md
+--
+-- Tabelas: provider_profiles, categories, services, service_photos.
+--
+-- IMPORTANTE — bounded context:
+--   - provider_profiles.user_id é UUID e referencia o id do usuário NO IDENTITY-SERVICE.
+--   - NÃO crie FK física — bancos diferentes, microserviços diferentes.
+--   - Garanta consistência via eventos (user.registered cria o profile aqui).
+--
+-- Esqueleto sugerido:
+--
+-- CREATE EXTENSION IF NOT EXISTS pgcrypto;
+--
+-- CREATE TABLE categories (
+--     id   BIGSERIAL PRIMARY KEY,
+--     name VARCHAR(100) NOT NULL UNIQUE
+-- );
+--
+-- CREATE TABLE provider_profiles (
+--     user_id    UUID PRIMARY KEY,                 -- vem do identity (sem FK física)
+--     biography  TEXT
+-- );
+--
+-- CREATE TABLE services (
+--     id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+--     provider_id  UUID NOT NULL REFERENCES provider_profiles(user_id) ON DELETE CASCADE,
+--     category_id  BIGINT NOT NULL REFERENCES categories(id),
+--     title        VARCHAR(255) NOT NULL,
+--     description  TEXT,
+--     availability VARCHAR(255),
+--     status       VARCHAR(20) NOT NULL,
+--     created_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+-- );
+--
+-- CREATE TABLE service_photos (
+--     id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+--     service_id  UUID NOT NULL REFERENCES services(id) ON DELETE CASCADE,
+--     photo_url   VARCHAR(512) NOT NULL
+-- );
+--
+-- CREATE INDEX idx_services_status ON services(status);
+-- CREATE INDEX idx_services_category ON services(category_id);
+-- CREATE INDEX idx_services_provider ON services(provider_id);
+--
+-- -- Categorias iniciais (RF02 menciona Limpeza, Elétrica)
+-- INSERT INTO categories (name) VALUES
+--     ('Limpeza'), ('Elétrica'), ('Hidráulica'), ('Pintura'),
+--     ('Jardinagem'), ('Cuidados Pessoais'), ('Aulas Particulares'),
+--     ('Tecnologia'), ('Marcenaria');

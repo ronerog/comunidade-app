@@ -1,19 +1,163 @@
 version: '3.8'
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Stack completa do ambiente de desenvolvimento
+# Inicie com: docker compose --env-file .env up -d
+# ─────────────────────────────────────────────────────────────────────────────
+
 services:
-  # Servidor Local PostgreSQL
-  postgres:
+
+  # ── PostgreSQL (identidade) ─────────────────────────────────────────────────
+  postgres-identity:
     image: postgres:16-alpine
-    container_name: comunidade_postgres_db
-    restart: always
+    container_name: comunidade_postgres_identity
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_DB: identity_db
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_identity_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d identity_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── PostgreSQL (catálogo) ───────────────────────────────────────────────────
+  postgres-catalog:
+    image: postgres:16-alpine
+    container_name: comunidade_postgres_catalog
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: catalog_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_catalog_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d catalog_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── RabbitMQ ────────────────────────────────────────────────────────────────
+  # Web UI: http://localhost:15672 (user/senha do .env)
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: comunidade_rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+    ports:
+      - "5672:5672"    # AMQP (serviços Java)
+      - "15672:15672"  # Management UI (browser)
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  # ── Redis ────────────────────────────────────────────────────────────────────
+  # CLI: docker exec -it comunidade_redis redis-cli -a <senha>
+  redis:
+    image: redis:7.2-alpine
+    container_name: comunidade_redis
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Keycloak ─────────────────────────────────────────────────────────────────
+  # Admin Console: http://localhost:8080/admin (user: admin / senha do .env)
+  # Realm da app: http://localhost:8080/realms/comunidade
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0
+    container_name: comunidade_keycloak
+    restart: unless-stopped
+    command: start-dev --import-realm
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN_USER}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: dev-mem  # em dev usa H2 em memória — em prod configure Postgres
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./keycloak/realms:/opt/keycloak/data/import
+    depends_on:
+      - postgres-identity
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health/ready || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  # ── Mailpit (SMTP fake para dev) ─────────────────────────────────────────────
+  # Web UI: http://localhost:8025 — veja os e-mails enviados sem sair da máquina
+  # SMTP: host=localhost, port=1025 (configurado no notification-service)
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: comunidade_mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+    environment:
+      MP_MAX_MESSAGES: 500
+      MP_UI_AUTH_FILE: ""  # sem auth em dev
+
+  # ── Observabilidade (Fase 8) ─────────────────────────────────────────────────
+  # Descomente quando chegar na Fase 8.
+
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   container_name: comunidade_prometheus
+  #   ports:
+  #     - "9090:9090"
+  #   volumes:
+  #     - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   container_name: comunidade_grafana
+  #   ports:
+  #     - "3100:3000"
+  #   volumes:
+  #     - grafana_data:/var/lib/grafana
+  #     - ./observability/grafana/datasources:/etc/grafana/provisioning/datasources
+  #   environment:
+  #     GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:admin}
+
+  # loki:
+  #   image: grafana/loki:latest
+  #   container_name: comunidade_loki
+  #   ports:
+  #     - "3200:3100"
+
+  # tempo:
+  #   image: grafana/tempo:latest
+  #   container_name: comunidade_tempo
+  #   ports:
+  #     - "3201:3200"
 
 volumes:
-  postgres_data:
+  postgres_identity_data:
+  postgres_catalog_data:
+  rabbitmq_data:
+  redis_data:
+  # grafana_data:

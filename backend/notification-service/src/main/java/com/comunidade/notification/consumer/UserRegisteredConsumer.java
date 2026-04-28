@@ -3,13 +3,34 @@ package com.comunidade.notification.consumer;
 import com.comunidade.notification.events.UserRegisteredEvent;
 import org.springframework.stereotype.Component;
 
-// TODO: Ouvir a fila "user.registered" com @RabbitListener
-// Ao receber o evento, delegar o envio de e-mail para o EmailService
+// TODO Fase 3: ouvinte da fila "user.registered.queue".
+//
+// Esqueleto:
+//
+//   @Component
+//   @RequiredArgsConstructor
+//   @Slf4j
+//   public class UserRegisteredConsumer {
+//
+//       private final EmailService emailService;
+//
+//       @RabbitListener(queues = "user.registered.queue")
+//       public void onUserRegistered(UserRegisteredEvent event) {
+//           log.info("Recebido user.registered: userId={}, email={}", event.userId(), event.email());
+//           emailService.sendWelcomeEmail(event.email(), event.name());
+//       }
+//   }
+//
+// Cuidados:
+//   - IDEMPOTÊNCIA: o RabbitMQ pode entregar a mesma mensagem mais de uma vez
+//     (em redelivery após erro). Se você enviar e-mail toda vez, o usuário recebe N e-mails.
+//     Solução: armazenar (userId, eventType) já processados em Redis com TTL grande.
+//     Antes de processar, checar; depois de processar, marcar.
+//
+//   - TRATAMENTO DE ERRO: se EmailService lançar exceção, o Spring re-entrega a mensagem
+//     (até esgotar retries → vai pra DLQ na Fase 4). Não engula exceções aqui.
 @Component
 public class UserRegisteredConsumer {
 
-    // TODO: injetar o EmailService
-
-    // TODO: criar o método listener anotado com @RabbitListener(queues = "user.registered")
-    // O Spring vai desserializar a mensagem automaticamente para UserRegisteredEvent
+    // TODO Fase 3: injetar EmailService e implementar listener
 }

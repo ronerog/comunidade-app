@@ -2,14 +2,23 @@ package com.comunidade.catalog.domain.model;
 
 import java.util.UUID;
 
-// TODO: Mapear a entidade ProviderProfile com JPA (@Entity, @Table)
-// Campos do MER: user_id (UUID, PK e FK 1:1 com Users do identity-service), biography (String)
-// Relações: possui lista de ServiceItem (@OneToMany)
-// Referência: docs/3-modelo_entidade_relacionamento.md — tabela PROVIDER_PROFILES
-//             docs/4-mapeamento_de_classes.md — classe ProviderProfile
+// TODO Fase 1: mapear ProviderProfile como entidade JPA.
+//
+// Anotações sugeridas:
+//   @Entity
+//   @Table(name = "provider_profiles")
+//   @Getter @Setter
+//
+// Campos do MER (PROVIDER_PROFILES):
+//   - userId    (UUID, @Id) -- vem do identity-service. NÃO use @GeneratedValue.
+//   - biography (String, @Column(columnDefinition = "TEXT"))
+//   - services  (List<ServiceItem>, @OneToMany(mappedBy = "provider", cascade = ALL))
+//
+// IMPORTANTE — quem cria o ProviderProfile?
+//   Quando identity publica `user.registered` com userType=PROVIDER, o catalog
+//   consome esse evento e cria o ProviderProfile aqui automaticamente.
+//   → Você precisará criar um listener (Fase 3) e um ProviderProfileRepository (já existe).
 public class ProviderProfile {
 
-    // TODO: userId (UUID, @Id — não gerado aqui, vem do identity-service)
-    // TODO: biography (String)
-    // TODO: services (List<ServiceItem>, @OneToMany)
+    // TODO: implementar
 }

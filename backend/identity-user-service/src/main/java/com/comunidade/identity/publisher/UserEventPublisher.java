@@ -3,14 +3,37 @@ package com.comunidade.identity.publisher;
 import com.comunidade.identity.events.UserRegisteredEvent;
 import org.springframework.stereotype.Component;
 
-// TODO: Injetar o RabbitTemplate e publicar o UserRegisteredEvent
-// Dica: rabbitTemplate.convertAndSend(exchange, routingKey, event)
+// TODO Fase 3: publica eventos da exchange "user.events".
+//
+// Esqueleto:
+//
+//   @Component
+//   @RequiredArgsConstructor   // Lombok injeta via construtor
+//   public class UserEventPublisher {
+//
+//       private final RabbitTemplate rabbitTemplate;
+//
+//       public void publishUserRegistered(UserRegisteredEvent event) {
+//           rabbitTemplate.convertAndSend(
+//               RabbitMQConfig.USER_EXCHANGE,
+//               RabbitMQConfig.ROUTING_REGISTERED,
+//               event
+//           );
+//       }
+//   }
+//
+// Cuidado importante (outbox pattern):
+//   Se você publicar DENTRO de uma transação JPA e a transação der rollback,
+//   o evento já foi publicado e o usuário NÃO foi criado — inconsistência.
+//
+// Soluções:
+//   (a) Publicar APÓS o commit usando @TransactionalEventListener(phase = AFTER_COMMIT).
+//   (b) Outbox pattern: gravar o evento numa tabela "outbox" na mesma transação,
+//       e ter um job que lê dessa tabela e publica no Rabbit. Mais robusto.
+//
+// Para projeto acadêmico, (a) é suficiente. Mas estude (b) — é o padrão real de produção.
 @Component
 public class UserEventPublisher {
 
-    // TODO: injetar RabbitTemplate via construtor (use @RequiredArgsConstructor do Lombok)
-
-    public void publishUserRegistered(UserRegisteredEvent event) {
-        // TODO: publicar o evento na exchange correta com a routing key "user.registered"
-    }
+    // TODO Fase 3: injetar RabbitTemplate e implementar publishUserRegistered
 }
