@@ -75,12 +75,22 @@ classDiagram
     ProviderProfile "1" --> "*" Category : acts in
     ProviderProfile "1" --> "*" ServiceItem : publishes
     ServiceItem "1" *-- "*" ServicePhoto : contains
+
+    %% Agregado de Notificação
+    class UserRegisteredEvent {
+        <<event>>
+        -Long userId
+        -String email
+        -String name
+        -LocalDateTime createdAt
+    }
 ```
 
 ## Estrutura de Domínios (Domain-Driven Design)
 
-No back-end isolaremos os pacotes para diminuir complexidades de herança:
-* `br.com.comunidade.identity.*`
-* `br.com.comunidade.catalog.*`
+No back-end isolaremos os pacotes para diminuir complexidades de herança e facilitar o isolamento por microserviços:
+* `com.comunidade.identity.*` (Gerenciamento de usuários e perfis)
+* `com.comunidade.catalog.*` (Catálogo de serviços e vitrine)
+* `com.comunidade.notification.*` (Consumo de eventos e disparos de e-mail)
 
-Usar enums como `Gender(MALE, FEMALE, OTHER)` e `UserStatus(PENDING, ACTIVE, SUSPENDED)` para manter fidelidade com as flags requeridas nos RF01/RF02/RF03.
+Usar enums como `Gender(MALE, FEMALE, OTHER)`, `UserStatus(PENDING, ACTIVE, SUSPENDED)` e `ServiceStatus(ACTIVE, INACTIVE, SUSPENDED)` para manter fidelidade com as regras de negócio.

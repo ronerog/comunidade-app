@@ -1,6 +1,6 @@
 # Requisitos e Funcionalidades
 
-Baseado no Documento de Requisitos Extraídos, o projeto é orientado aos três casos de uso (RFs) principais.
+Baseado no Documento de Requisitos Extraídos, o projeto é orientado aos casos de uso (RFs) principais.
 
 ## 1. Cadastro de Clientes (Cidadãos/Solicitantes) - RF01
 - **Descrição:** Requisito responsável pelo registro de usuários que desejam *solicitar* serviços na plataforma.
@@ -21,3 +21,9 @@ Baseado no Documento de Requisitos Extraídos, o projeto é orientado aos três 
 - **Descrição:** Permite que o prestador crie anúncios na vitrine.
 - **Requisito:** Prestador logado e ativo.
 - **Dados do Serviço:** Título, Descrição Detalhada, Categoria (associada), Disponibilidade (Horários), Fotos ilustrativas (várias).
+
+## 4. Notificações e Comunicação Assíncrona - RF04
+- **Descrição:** Sistema de alerta e boas-vindas para usuários da plataforma.
+- **Gatilhos:** Registro de novo usuário (RF01/RF02), publicação de novo serviço (RF03).
+- **Canais:** E-mail (inicial), Push Notifications (futuro).
+- **Regras:** O envio não deve bloquear a experiência do usuário (processamento assíncrono via mensageria).
