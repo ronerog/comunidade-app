@@ -1,18 +1,23 @@
 package com.comunidade.identity.service;
 
+import com.comunidade.identity.api.dto.UserResponse;
+import com.comunidade.identity.domain.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
-// TODO Fase 1 + Fase 5 (cache): consultas de usuário.
-// Métodos sugeridos:
-//   - UserResponse findById(UUID id);
-//   - UserResponse findCurrent(Jwt principal);   // pega o sub do JWT (Fase 2)
-//
-// Fase 5: anote findById com @Cacheable("users") para cachear no Redis.
-// Não esqueça de @CacheEvict no UserRegistrationService quando atualizar dados do usuário.
+import java.util.UUID;
+
 @Service
 public class UserQueryService {
 
-    // TODO: injetar UserRepository
+    private final UserRepository userRepository;
 
-    // TODO: implementar
+    public UserQueryService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    public UserResponse findById(UUID id) {
+        return userRepository.findById(id)
+                .map(UserResponse::from)
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Usuário não encontrado: " + id));
+    }
 }

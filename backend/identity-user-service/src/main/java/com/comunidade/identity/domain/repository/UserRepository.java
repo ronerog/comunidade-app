@@ -16,5 +16,8 @@ import java.util.UUID;
 @Repository
 public interface UserRepository extends JpaRepository<BaseUser, UUID> {
 
-    // TODO: declarar métodos de busca derivados do nome
+    Optional<BaseUser> findByEmail(String email);
+    Optional<BaseUser> findByDocument(String document);
+    boolean existsByEmail(String email);
+    boolean existsByDocument(String document);
 }

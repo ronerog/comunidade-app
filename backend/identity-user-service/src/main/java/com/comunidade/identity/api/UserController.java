@@ -1,26 +1,47 @@
 package com.comunidade.identity.api;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.comunidade.identity.api.dto.RegisterClientRequest;
+import com.comunidade.identity.api.dto.RegisterProviderRequest;
+import com.comunidade.identity.api.dto.UserResponse;
+import com.comunidade.identity.service.UserQueryService;
+import com.comunidade.identity.service.UserRegistrationService;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
-// TODO Fase 1: endpoints de usuário (cidadãos e prestadores).
-// Versionamento: usamos /api/v1/... desde o começo (evita dor de cabeça depois).
-//
-// Endpoints sugeridos:
-//   POST /api/v1/users/clients     -> registra cliente (RF01)        — público (não autenticado)
-//   POST /api/v1/users/providers   -> registra prestador (RF02)      — público
-//   GET  /api/v1/users/me          -> dados do usuário logado        — autenticado (JWT)
-//   GET  /api/v1/users/{id}        -> dados de um usuário            — autenticado
-//
-// Boas práticas:
-//   - Use @Valid no @RequestBody para disparar Bean Validation
-//   - Use ResponseEntity<UserResponse> para controlar status HTTP (201 Created no POST)
-//   - Use @AuthenticationPrincipal Jwt jwt para acessar o token (Fase 2)
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/v1/users")
 public class UserController {
 
-    // TODO: injetar UserRegistrationService e UserQueryService
+    private final UserRegistrationService registrationService;
+    private final UserQueryService queryService;
 
-    // TODO: implementar endpoints
+    public UserController(UserRegistrationService registrationService, UserQueryService queryService) {
+        this.registrationService = registrationService;
+        this.queryService = queryService;
+    }
+
+    @PostMapping("/clients")
+    public ResponseEntity<UserResponse> registerClient(@Valid @RequestBody RegisterClientRequest req,
+                                                       UriComponentsBuilder uriBuilder) {
+        UserResponse response = registrationService.registerClient(req);
+        var location = uriBuilder.path("/api/v1/users/{id}").buildAndExpand(response.id()).toUri();
+        return ResponseEntity.created(location).body(response);
+    }
+
+    @PostMapping("/providers")
+    public ResponseEntity<UserResponse> registerProvider(@Valid @RequestBody RegisterProviderRequest req,
+                                                         UriComponentsBuilder uriBuilder) {
+        UserResponse response = registrationService.registerProvider(req);
+        var location = uriBuilder.path("/api/v1/users/{id}").buildAndExpand(response.id()).toUri();
+        return ResponseEntity.created(location).body(response);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponse> findById(@PathVariable UUID id) {
+        return ResponseEntity.ok(queryService.findById(id));
+    }
 }

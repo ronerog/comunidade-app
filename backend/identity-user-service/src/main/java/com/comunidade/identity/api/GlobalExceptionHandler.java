@@ -1,18 +1,49 @@
 package com.comunidade.identity.api;
 
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-// TODO Fase 1: handler global de exceções.
-// Tratar pelo menos:
-//   - MethodArgumentNotValidException -> 400 com lista de erros campo a campo
-//   - DataIntegrityViolationException (email/cpf duplicado) -> 409 Conflict
-//   - EntityNotFoundException -> 404 Not Found
-//   - Exception (catch-all) -> 500 com mensagem genérica
-//
-// Considere usar o padrão RFC 7807 (ProblemDetail) — Spring 6+ tem suporte built-in
-// via ProblemDetail.forStatusAndDetail(...). Aprenda esse padrão, é o estado da arte.
+import java.util.stream.Collectors;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // TODO: @ExceptionHandler(...) métodos
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ProblemDetail handleValidation(MethodArgumentNotValidException ex) {
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        problem.setTitle("Dados inválidos");
+        String errors = ex.getBindingResult().getFieldErrors().stream()
+                .map(e -> e.getField() + ": " + e.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+        problem.setDetail(errors);
+        return problem;
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ProblemDetail handleIllegalArgument(IllegalArgumentException ex) {
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+        problem.setTitle("Conflito");
+        problem.setDetail(ex.getMessage());
+        return problem;
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ProblemDetail handleNotFound(EntityNotFoundException ex) {
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+        problem.setTitle("Não encontrado");
+        problem.setDetail(ex.getMessage());
+        return problem;
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ProblemDetail handleGeneric(Exception ex) {
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        problem.setTitle("Erro interno");
+        problem.setDetail("Ocorreu um erro inesperado");
+        return problem;
+    }
 }

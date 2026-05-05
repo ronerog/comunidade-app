@@ -1,11 +1,31 @@
 package com.comunidade.identity.api.dto;
 
+import com.comunidade.identity.domain.model.BaseUser;
+import com.comunidade.identity.domain.model.ClientUser;
+import com.comunidade.identity.domain.model.UserStatus;
+
+import java.time.LocalDateTime;
 import java.util.UUID;
 
-// TODO Fase 1: DTO de saída — nunca retorne a entidade JPA diretamente em endpoints REST.
-// Por que? Evita lazy loading explodindo serialização, vazamento de campos sensíveis (passwordHash),
-// e desacopla contrato HTTP de mudanças no banco.
 public record UserResponse(
-        // TODO: id (UUID), email, name (firstName + lastName ou companyName), status, createdAt
+        UUID id,
+        String email,
+        String name,
+        String document,
+        UserStatus status,
+        LocalDateTime createdAt
 ) {
+    public static UserResponse from(BaseUser user) {
+        String name = user instanceof ClientUser c
+                ? c.getFirstName() + " " + c.getLastName()
+                : user.getEmail();
+        return new UserResponse(
+                user.getId(),
+                user.getEmail(),
+                name,
+                user.getDocument(),
+                user.getStatus(),
+                user.getCreatedAt()
+        );
+    }
 }

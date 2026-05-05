@@ -1,25 +1,40 @@
 package com.comunidade.identity.domain.model;
 
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.UUID;
 
-// TODO Fase 1: mapear endereço (1:1 com BaseUser).
-// Anotações sugeridas:
-//   @Entity
-//   @Table(name = "addresses")
-//   @Getter @Setter
-//
-// Campos do MER (tabela ADDRESSES):
-//   - id          (UUID, @Id @GeneratedValue)
-//   - cep         (String, 8 dígitos sem máscara)
-//   - logradouro  (String)
-//   - number      (String) — string porque pode ser "S/N", "100A", etc.
-//   - bairro      (String)
-//   - city        (String)
-//   - state       (String, 2 chars)
-//
-// Dica: o lado dono da relação (que carrega o FK) costuma ser Address (com user_id),
-// mas para 1:1 dá pra inverter. Decida e justifique.
+@Entity
+@Table(name = "addresses")
+@Getter
+@Setter
 public class Address {
 
-    // TODO: implementar
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @OneToOne
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private BaseUser user;
+
+    @Column(nullable = false, length = 8)
+    private String cep;
+
+    @Column(nullable = false)
+    private String logradouro;
+
+    @Column(nullable = false, length = 20)
+    private String number;
+
+    @Column(nullable = false, length = 100)
+    private String bairro;
+
+    @Column(nullable = false, length = 100)
+    private String city;
+
+    @Column(nullable = false, length = 2)
+    private String state;
 }

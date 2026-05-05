@@ -1,24 +1,90 @@
 package com.comunidade.identity.service;
 
+import com.comunidade.identity.api.dto.AddressDto;
+import com.comunidade.identity.api.dto.RegisterClientRequest;
+import com.comunidade.identity.api.dto.RegisterProviderRequest;
+import com.comunidade.identity.api.dto.UserResponse;
+import com.comunidade.identity.domain.model.Address;
+import com.comunidade.identity.domain.model.ClientUser;
+import com.comunidade.identity.domain.model.ProviderUser;
+import com.comunidade.identity.domain.model.UserStatus;
+import com.comunidade.identity.domain.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-// TODO Fase 1: orquestração do cadastro de usuário (RF01 e RF02).
-// Responsabilidades sugeridas:
-//   1. Validar unicidade (email, document) — checar com o repositório.
-//   2. Criar entidade ClientUser/ProviderUser a partir do DTO.
-//   3. Buscar o endereço completo via ViaCepClient (Fase 6) usando o CEP.
-//   4. Persistir.
-//   5. Publicar evento user.registered (Fase 3) — DEPOIS do commit (use @TransactionalEventListener
-//      ou publicar no final do método transacional).
-//   6. Retornar UserResponse.
-//
-// Dica de aprendizado: marcar o método como @Transactional. Pesquise o que é "publicar evento
-// dentro de transação" — é uma armadilha clássica em arquiteturas event-driven (outbox pattern).
 @Service
 public class UserRegistrationService {
 
-    // TODO: injetar UserRepository, AddressRepository, ViaCepClient, UserEventPublisher, PasswordEncoder
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    // TODO: registerClient(RegisterClientRequest req) -> UserResponse
-    // TODO: registerProvider(RegisterProviderRequest req) -> UserResponse
+    public UserRegistrationService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    @Transactional
+    public UserResponse registerClient(RegisterClientRequest req) {
+        validateUniqueness(req.email(), req.document());
+
+        ClientUser user = new ClientUser();
+        fillBaseFields(user, req.email(), req.password(), req.document(), req.mobilePhone());
+        user.setFirstName(req.firstName());
+        user.setLastName(req.lastName());
+        user.setBirthDate(req.birthDate());
+        user.setGender(req.gender());
+
+        Address address = buildAddress(req.address(), user);
+        user.setAddress(address);
+
+        userRepository.saveAndFlush(user);
+        return UserResponse.from(user);
+    }
+
+    @Transactional
+    public UserResponse registerProvider(RegisterProviderRequest req) {
+        validateUniqueness(req.email(), req.document());
+
+        ProviderUser user = new ProviderUser();
+        fillBaseFields(user, req.email(), req.password(), req.document(), req.mobilePhone());
+        user.setCompanyName(req.companyName());
+        user.setBiography(req.biography());
+
+        Address address = buildAddress(req.address(), user);
+        user.setAddress(address);
+
+        userRepository.saveAndFlush(user);
+        return UserResponse.from(user);
+    }
+
+    private void validateUniqueness(String email, String document) {
+        if (userRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException("E-mail já cadastrado");
+        }
+        if (userRepository.existsByDocument(document)) {
+            throw new IllegalArgumentException("Documento já cadastrado");
+        }
+    }
+
+    private void fillBaseFields(com.comunidade.identity.domain.model.BaseUser user,
+                                String email, String password, String document, String mobilePhone) {
+        user.setEmail(email);
+        user.setPasswordHash(passwordEncoder.encode(password));
+        user.setDocument(document);
+        user.setMobilePhone(mobilePhone);
+        user.setStatus(UserStatus.PENDING);
+    }
+
+    private Address buildAddress(AddressDto dto, com.comunidade.identity.domain.model.BaseUser user) {
+        Address address = new Address();
+        address.setUser(user);
+        address.setCep(dto.cep());
+        address.setLogradouro(dto.logradouro());
+        address.setNumber(dto.number());
+        address.setBairro(dto.bairro());
+        address.setCity(dto.city());
+        address.setState(dto.state());
+        return address;
+    }
 }
