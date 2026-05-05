@@ -7,6 +7,8 @@ import com.comunidade.identity.service.UserQueryService;
 import com.comunidade.identity.service.UserRegistrationService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -38,6 +40,11 @@ public class UserController {
         UserResponse response = registrationService.registerProvider(req);
         var location = uriBuilder.path("/api/v1/users/{id}").buildAndExpand(response.id()).toUri();
         return ResponseEntity.created(location).body(response);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> me(@AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(queryService.findCurrent(jwt));
     }
 
     @GetMapping("/{id}")
